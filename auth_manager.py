@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 # ==========================================
-# 1. MySQL 数据库配置
+# 1. MySQL Setup
 # ==========================================
 DB_CONFIG = {
     'host': 'localhost',
@@ -16,7 +16,7 @@ DB_CONFIG = {
 
 
 # ==========================================
-# 2. 核心功能函数
+# 2. Core Funcs
 # ==========================================
 def get_connection():
     """获取数据库连接"""

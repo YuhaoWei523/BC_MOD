@@ -1,11 +1,9 @@
 import mysql.connector
 import hashlib
 
-# --- 配置 ---
-# 这是连接 MySQL 服务器的密码 (安装时设的那个)
+# --- Setup ---
 MYSQL_ROOT_PASSWORD = '123456'
 
-# 这是你想要设置的系统登录账号密码
 APP_USERS = [
     ('admin', 'admin123456', 'admin'),  # 用户名, 密码, 权限
     ('guest', 'guest123456', 'guest')
@@ -13,14 +11,14 @@ APP_USERS = [
 
 
 def hash_password(password):
-    """跟 auth_manager.py 保持一致的加密逻辑"""
+    """与 auth_manager.py 保持一致的加密逻辑"""
     return hashlib.sha256(password.encode()).hexdigest()
 
 
 def init_database():
     print("🚀 开始初始化数据库...")
 
-    # 1. 连接 MySQL Server (不指定数据库，因为还没建)
+    # 1. 连接 MySQL Server
     try:
         conn = mysql.connector.connect(
             host='localhost',
@@ -76,8 +74,7 @@ def init_database():
             print(f"   - 用户 [{user}] 创建成功 (密码: {pwd})")
 
         conn.commit()
-        print("\n✅✅✅ 数据库初始化完美完成！")
-        print("现在你可以直接运行 streamlit run app.py 了")
+        print("\n✅✅✅ 数据库初始化完成！")
 
     except Exception as e:
         print(f"❌ 初始化过程中出错: {e}")
