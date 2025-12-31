@@ -770,46 +770,157 @@ def admin_ui():
                 conn.close()
 
             # --- Imaging CRUD (Improved: Example JSON) ---
+            # --- Imaging CRUD (最终修复版: 自动适配表结构) ---
+                # --- Imaging CRUD (修复版: 适配 UNIQUE 约束) ---
             elif selected_db == "Imaging":
+                conn = sqlite3.connect(DB_PATHS['Imaging'])
+
+                # 尝试建表 (适配组员设计，假设 image_id 存在且唯一)
+                # 注意：如果表已存在，这句话会被忽略，不会覆盖已有结构
+                conn.execute("""
+                                CREATE TABLE IF NOT EXISTS annotations (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                                    annotation TEXT,
+                                    image_id INTEGER UNIQUE
+                                )
+                            """)
+
+                # 自动补全列 (防止旧文件缺少列)
+                try:
+                    conn.execute("SELECT image_id FROM annotations LIMIT 1")
+                except sqlite3.OperationalError:
+                    # 如果没有 image_id，加一列，注意不能设为 UNIQUE (SQLite限制)，只能先加上
+                    conn.execute("ALTER TABLE annotations ADD COLUMN image_id INTEGER DEFAULT 0")
+                    conn.commit()
+
                 crud_tab1, crud_tab2, crud_tab3 = st.tabs(
                     [t('crud_op_create'), t('crud_op_update'), t('crud_op_delete')])
-                conn = sqlite3.connect(DB_PATHS['Imaging'])
-                with crud_tab1:
+
+                with crud_tab1:  # Create
                     st.info(t('lbl_json_example'))
-                    json_str = st.text_area(t('lbl_json'), EXAMPLE_IMAGING_JSON, height=150)
+
+                    c1, c2 = st.columns([1, 3])
+                    # 【核心修改】增加输入框，让管理员指定不重复的 ID
+                    new_img_id = c1.number_input("Image ID (Unique)", min_value=1, step=1, value=1)
+
+                    default_json = """{
+              "positive": [
+                {
+                  "vertices": [[6000, 14000], [6200, 14000], [6100, 13800]]
+                }
+              ],
+              "negative": []
+            }"""
+                    json_str = c2.text_area(t('lbl_json'), default_json, height=200)
+
                     if st.button(t('btn_add'), key="img_add"):
                         try:
-                            json.loads(json_str)
-                            conn.execute("INSERT INTO annotations (annotation) VALUES (?)", (json_str,))
+                            valid_json = json.loads(json_str)
+                            # 使用用户输入的 ID 插入
+                            conn.execute("INSERT INTO annotations (annotation, image_id) VALUES (?, ?)",
+                                         (json.dumps(valid_json), new_img_id))
                             conn.commit()
                             st.success(t('msg_success'))
-                        except:
-                            st.error("Invalid JSON")
-                with crud_tab2:
+                            auth.log_action(st.session_state['username'], f"Create Imaging ROI (ImgID: {new_img_id})")
+                        except json.JSONDecodeError:
+                            st.error("❌ 格式错误: JSON 无效")
+                        except sqlite3.IntegrityError:
+                            st.error(f"❌ 提交失败: Image ID {new_img_id} 已存在，请换一个数字！")
+                        except Exception as e:
+                            st.error(f"❌ 数据库错误: {e}")
+
+                with crud_tab2:  # Update
                     cursor = conn.cursor()
-                    ids = pd.read_sql("SELECT id FROM annotations ORDER BY id DESC", conn)['id'].tolist()
-                    if ids:
-                        selected_id = st.selectbox(t('lbl_anno_id'), ids, key="img_upd_id")
-                        cursor.execute("SELECT annotation FROM annotations WHERE id=?", (selected_id,))
-                        res = cursor.fetchone()
-                        if res:
-                            old_json = res[0]
-                            new_json = st.text_area(f"Edit ID {selected_id}", old_json, height=150)
-                            if st.button(t('btn_update'), key="img_upd"):
-                                try:
-                                    json.loads(new_json)
-                                    conn.execute("UPDATE annotations SET annotation=? WHERE id=?",
-                                                 (new_json, selected_id))
-                                    conn.commit()
-                                    st.success(t('msg_success'))
-                                except:
-                                    st.error("Invalid JSON")
-                with crud_tab3:
-                    id_to_del = st.number_input(t('lbl_anno_id'), 1, step=1, key="img_del_id")
-                    if st.button(t('btn_delete'), key="img_del"):
-                        conn.execute("DELETE FROM annotations WHERE id=?", (id_to_del,))
-                        conn.commit()
-                        st.success(t('msg_success'))
+                    try:
+                        # 1. 获取所有 ID (刷新列表)
+                        df_ids = pd.read_sql("SELECT id, image_id FROM annotations ORDER BY id DESC", conn)
+
+                        if not df_ids.empty:
+                            # 2. 构建下拉菜单选项
+                            id_map = {}
+                            for _, row in df_ids.iterrows():
+                                # 确保 ID 是整数
+                                rid = int(row['id'])
+                                rimg_id = row['image_id']
+                                img_id_disp = int(rimg_id) if pd.notna(rimg_id) else "NULL"
+                                label = f"ID:{rid} (ImgID:{img_id_disp})"
+                                id_map[label] = rid
+
+                            selected_label = st.selectbox("选择要修改的记录", list(id_map.keys()), key="img_upd_sel")
+
+                            # 【核心修复】强制转换为 Python int 类型，解决 numpy.int64 导致的查询失败
+                            selected_id = int(id_map[selected_label])
+
+                            # 3. 读取详细数据
+                            cursor.execute("SELECT annotation, image_id FROM annotations WHERE id=?", (selected_id,))
+                            res = cursor.fetchone()
+
+                            if res:
+                                old_json, old_img_id = res
+                                safe_img_id = int(old_img_id) if (old_img_id is not None) else 0
+                                safe_json = old_json if old_json else "{}"
+
+                                st.markdown("---")
+                                c_upd_1, c_upd_2 = st.columns([1, 3])
+
+                                # Image ID 输入框
+                                new_img_id_upd = c_upd_1.number_input(
+                                    "Image ID (Unique)",
+                                    min_value=0, step=1,
+                                    value=safe_img_id,
+                                    key="img_upd_val_id"
+                                )
+
+                                # JSON 输入框
+                                new_json = c_upd_2.text_area(
+                                    "JSON 数据",
+                                    value=safe_json,
+                                    height=250,
+                                    key="img_upd_json_area"
+                                )
+
+                                if st.button("💾 保存修改", key="img_upd_btn"):
+                                    try:
+                                        json.loads(new_json)  # 校验
+                                        conn.execute(
+                                            "UPDATE annotations SET annotation=?, image_id=? WHERE id=?",
+                                            (new_json, new_img_id_upd, selected_id)
+                                        )
+                                        conn.commit()
+                                        st.success("✅ 修改已保存！")
+                                        auth.log_action(st.session_state['username'],
+                                                        f"Update Imaging ID: {selected_id}")
+                                        time.sleep(0.5)
+                                        st.rerun()
+                                    except sqlite3.IntegrityError:
+                                        st.error(f"❌ 保存失败: Image ID {new_img_id_upd} 已被占用，请换一个数字。")
+                                    except json.JSONDecodeError:
+                                        st.error("❌ JSON 格式错误")
+                            else:
+                                # 增加详细调试信息，万一再报错知道原因
+                                st.error(f"❌ 未找到 ID={selected_id} 的记录。建议刷新页面重试。")
+                        else:
+                            st.info("📭 数据库目前是空的，请先去 [新增] 标签页添加数据。")
+                    except Exception as e:
+                        st.error(f"❌ 系统错误: {e}")
+
+                with crud_tab3:  # Delete
+                    df_ids = pd.read_sql("SELECT id, image_id FROM annotations", conn)
+                    if not df_ids.empty:
+                        id_map = {f"ID:{row['id']} (ImgID:{row['image_id']})": row['id'] for _, row in
+                                  df_ids.iterrows()}
+                        del_label = st.selectbox("选择要删除的记录", list(id_map.keys()), key="img_del_sel")
+                        id_to_del = id_map[del_label]
+
+                        if st.button(t('btn_delete'), key="img_del"):
+                            conn.execute("DELETE FROM annotations WHERE id=?", (id_to_del,))
+                            conn.commit()
+                            st.success(t('msg_success'))
+                            auth.log_action(st.session_state['username'], f"Delete Imaging ID: {id_to_del}")
+                            st.rerun()
+                    else:
+                        st.info("无数据可删除")
+
                 conn.close()
 
     # --- Tab 4: Backup ---
