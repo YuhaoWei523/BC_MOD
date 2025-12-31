@@ -24,7 +24,7 @@ import auth_manager as auth
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # ==========================================
-# 3. 国际化字典 (i18n) - 终极版
+# 3. 国际化字典 (i18n) - 修复与增强版
 # ==========================================
 TRANS = {
     "CN": {
@@ -55,13 +55,12 @@ TRANS = {
         "tab_data_crud": "🧬 组学数据维护",
         "tab_backup": "💾 备份与恢复",
 
-        # CRUD Specifics
+        # CRUD
         "crud_exp_anno": "📝 专家注释管理 (MySQL)",
         "crud_header_core": "🛠️ 核心组学数据修正 (SQLite)",
         "crud_select_db": "选择目标数据库",
         "crud_mode_anno_add": "➕ 新增注释",
         "crud_mode_anno_manage": "🖊️ 管理已有注释 (修改/删除)",
-
         "crud_op_create": "➕ 新增数据 (Create)",
         "crud_op_update": "📝 修改/扩展 (Update/Extend)",
         "crud_op_delete": "🗑️ 删除数据 (Delete)",
@@ -86,18 +85,21 @@ TRANS = {
         "lbl_celltype": "细胞类型 (CellType)",
         "lbl_exp_val": "数值 (Value)",
         "lbl_sample_id": "样本ID (Sample)",
+        "lbl_ref_gene": "参考基因 (Ref Gene)",
+        "lbl_col_gene": "基因列名 (Gene Column)",
         "lbl_region": "空间区域 (Region)",
         "lbl_metabo": "代谢物 (Metabolite)",
         "lbl_kegg": "KEGG 通路",
         "lbl_note": "备注 (Note)",
-        "lbl_json": "JSON 内容",
+        "lbl_json": "JSON 内容 (ROI Data)",
         "lbl_anno_id": "注释ID",
         "lbl_new_sample": "新样本ID (New Sample)",
-        "lbl_col_gene": "基因列名 (Column)",
         "lbl_auto_col": "⚠️ 若基因列不存在，将自动修改表结构 (ALTER TABLE) 增加该列。",
         "lbl_metabo_mode": "维护模式",
         "lbl_search_kegg": "筛选 KEGG 通路",
+        "lbl_json_example": "示例数据已加载，请基于此修改：",
 
+        # Backup & Other
         "backup_title": "📦 全系统备份 (Full Backup)",
         "backup_desc": "将用户数据(MySQL)与组学数据(SQLite)打包下载。",
         "backup_sel_content": "1. 选择备份内容",
@@ -117,16 +119,20 @@ TRANS = {
         "btn_pdf": "📄 生成分析报告 (Export PDF)",
         "info_expert_anno": "📋 专家注释 (Expert Annotations)",
 
+        # Tabs & Notes (Fixing missed keys)
         "tab_scrna": "🔬 scRNA",
         "tab_atac": "🧬 ATAC",
         "tab_metabo": "⚗️ Metabo",
         "tab_spatial": "🗺️ Spatial",
         "tab_imaging": "🖼️ Imaging",
+        "imaging_note": "💡 说明：展示 AI 辅助识别的肿瘤感兴趣区域 (ROI)。JSON 数据定义了多边形顶点坐标。",
+        "spatial_single_note": "ℹ️ 提示：当前 Spatial 模块展示标准参考样本 V1 (HER2_Positive)。",
+        "atac_sim_note": "⚠️ 注：ATAC 数据展示包含真实录入的亚型与模拟亚型。",
+        "atac_raw_title": "2. 原始样本分布 (未过滤)",
 
         "data_browser": "📚 数据字典导览",
         "top_genes_list": "🔥 高表达基因 (scRNA)",
         "top_metas_list": "🧪 高表达代谢物",
-        "atac_sim_note": "⚠️ 注：当前 ATAC 数据库缺失临床亚型标注。",
         "input_gene_ph": "尝试: FOXA1, ESR1, PKM",
         "input_top_n": "显示 Top N",
         "input_sample": "选择样本",
@@ -172,7 +178,6 @@ TRANS = {
         "crud_select_db": "Select Database",
         "crud_mode_anno_add": "➕ Add Annotation",
         "crud_mode_anno_manage": "🖊️ Manage Annotations (Edit/Del)",
-
         "crud_op_create": "➕ Create",
         "crud_op_update": "📝 Update/Extend",
         "crud_op_delete": "🗑️ Delete",
@@ -196,6 +201,8 @@ TRANS = {
         "lbl_celltype": "CellType",
         "lbl_exp_val": "Value",
         "lbl_sample_id": "Sample ID",
+        "lbl_ref_gene": "Reference Gene",
+        "lbl_col_gene": "Gene Column",
         "lbl_region": "Region",
         "lbl_metabo": "Metabolite",
         "lbl_kegg": "KEGG Pathway",
@@ -203,10 +210,10 @@ TRANS = {
         "lbl_json": "JSON Content",
         "lbl_anno_id": "Annotation ID",
         "lbl_new_sample": "New Sample ID",
-        "lbl_col_gene": "Gene Column",
         "lbl_auto_col": "⚠️ If gene column missing, table will be altered (ALTER TABLE).",
         "lbl_metabo_mode": "Maintenance Mode",
         "lbl_search_kegg": "Filter by KEGG",
+        "lbl_json_example": "Example loaded. Modify based on this:",
 
         "backup_title": "📦 Full System Backup",
         "backup_desc": "Download User Data (MySQL) and Omics Data (SQLite) as ZIP.",
@@ -232,11 +239,14 @@ TRANS = {
         "tab_metabo": "⚗️ Metabo",
         "tab_spatial": "🗺️ Spatial",
         "tab_imaging": "🖼️ Imaging",
+        "imaging_note": "💡 Note: ROI visualization. JSON defines polygon vertices.",
+        "spatial_single_note": "ℹ️ Note: Showing Reference Sample V1 (HER2_Positive).",
+        "atac_sim_note": "⚠️ Note: ATAC data shows real + simulated subtypes.",
+        "atac_raw_title": "2. Raw Sample Distribution",
 
         "data_browser": "📚 Data Dictionary",
         "top_genes_list": "🔥 Top Genes (scRNA)",
         "top_metas_list": "🧪 Top Metabolites",
-        "atac_sim_note": "⚠️ Note: ATAC subtypes are simulated.",
         "input_gene_ph": "Try: FOXA1, ESR1, PKM",
         "input_top_n": "Show Top N",
         "input_sample": "Select Sample",
@@ -266,6 +276,16 @@ DB_PATHS = {
     "Imaging": "./dbs/imaging.db"
 }
 
+# Imaging Example JSON (For User Convenience)
+EXAMPLE_IMAGING_JSON = """{
+  "positive": [
+    {
+      "vertices": [[6000, 14000], [6200, 14000], [6100, 13800]]
+    }
+  ],
+  "negative": []
+}"""
+
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
     st.session_state['user_role'] = None
@@ -290,7 +310,8 @@ def run_sqlite_query(db_key, sql):
         return None
 
 
-def get_atac_meta(sample_id):
+def get_atac_meta_fallback(sample_id):
+    """Fallback hash algorithm if metadata missing"""
     types = ["TNBC", "HER2_Positive", "Luminal_A", "Luminal_B", "Normal"]
     return types[hash(sample_id) % len(types)]
 
@@ -580,23 +601,28 @@ def admin_ui():
                             st.error(f"{e}")
                 conn.close()
 
-            # --- ATAC CRUD (Improved: Create Sample / Update & Add Column) ---
+            # --- ATAC CRUD (Improved: Subtype metadata) ---
             elif selected_db == "ATAC":
                 crud_tab1, crud_tab2, crud_tab3 = st.tabs(
                     [t('crud_op_create'), t('crud_op_update'), t('crud_op_delete')])
                 conn = sqlite3.connect(DB_PATHS['ATAC'])
+                # Ensure metadata table
+                conn.execute("CREATE TABLE IF NOT EXISTS sample_metadata (sample TEXT PRIMARY KEY, subtype TEXT)")
 
-                with crud_tab1:  # Create New Sample Row
-                    c1, c2 = st.columns(2)
+                with crud_tab1:  # Create
+                    c1, c2, c3 = st.columns(3)
                     new_samp = c1.text_input(t('lbl_new_sample'), key="at_c_s")
-                    ref_gene = c2.text_input(t('lbl_ref_gene'), "FOXA1", key="at_c_g")
+                    new_sub = c2.selectbox(t('lbl_subtype'), ["TNBC", "Luminal_A", "HER2_Positive", "Normal"],
+                                           key="at_c_sub")
+                    ref_gene = c3.text_input(t('lbl_ref_gene'), "FOXA1", key="at_c_g")
                     val = st.number_input(t('lbl_exp_val'), 0.0, key="at_c_v")
                     if st.button(t('btn_add'), key="atac_add"):
                         try:
                             cur = conn.cursor()
-                            # Insert sample with one initial gene value
                             cur.execute(f"INSERT INTO sample_gene_matrix (sample, {ref_gene}) VALUES (?, ?)",
                                         (new_samp, val))
+                            cur.execute("INSERT OR REPLACE INTO sample_metadata (sample, subtype) VALUES (?,?)",
+                                        (new_samp, new_sub))
                             conn.commit()
                             st.success(t('msg_success'))
                             auth.log_action(st.session_state['username'], f"Create ATAC Sample: {new_samp}")
@@ -614,15 +640,12 @@ def admin_ui():
                     if st.button(t('btn_extend'), key="atac_upd"):
                         try:
                             cursor = conn.cursor()
-                            # Check if column exists
                             try:
                                 cursor.execute(f"SELECT {tgt_gene} FROM sample_gene_matrix LIMIT 1")
                             except sqlite3.OperationalError:
-                                # Column missing, add it!
                                 cursor.execute(f"ALTER TABLE sample_gene_matrix ADD COLUMN {tgt_gene} REAL DEFAULT 0")
                                 st.toast(f"Schema Updated: Added column {tgt_gene}")
 
-                            # Now Update
                             cursor.execute(f"UPDATE sample_gene_matrix SET {tgt_gene} = ? WHERE sample = ?",
                                            (new_val, tgt_sample))
                             conn.commit()
@@ -635,6 +658,7 @@ def admin_ui():
                     del_sample = st.selectbox(t('lbl_sample_id'), samples, key="atac_del")
                     if st.button(t('btn_delete'), key="atac_del_btn"):
                         conn.execute("DELETE FROM sample_gene_matrix WHERE sample = ?", (del_sample,))
+                        conn.execute("DELETE FROM sample_metadata WHERE sample = ?", (del_sample,))
                         conn.commit()
                         st.success(t('msg_success'))
                 conn.close()
@@ -662,7 +686,6 @@ def admin_ui():
                             conn.commit()
                             st.success(t('msg_success'))
                     with crud_tab2:  # Update Link Note
-                        # Simplify: Update Note by Gene+Metabo
                         c1, c2, c3 = st.columns(3)
                         u_g = c1.text_input(t('lbl_target_gene'), key="mt_mu_g").upper()
                         u_m = c2.text_input(t('lbl_metabo'), key="mt_mu_m")
@@ -746,14 +769,14 @@ def admin_ui():
                         st.success(t('msg_success'))
                 conn.close()
 
-            # --- Imaging CRUD ---
+            # --- Imaging CRUD (Improved: Example JSON) ---
             elif selected_db == "Imaging":
                 crud_tab1, crud_tab2, crud_tab3 = st.tabs(
                     [t('crud_op_create'), t('crud_op_update'), t('crud_op_delete')])
                 conn = sqlite3.connect(DB_PATHS['Imaging'])
                 with crud_tab1:
-                    st.caption(t('lbl_json'))
-                    json_str = st.text_area("JSON", '{"positive": []}')
+                    st.info(t('lbl_json_example'))
+                    json_str = st.text_area(t('lbl_json'), EXAMPLE_IMAGING_JSON, height=150)
                     if st.button(t('btn_add'), key="img_add"):
                         try:
                             json.loads(json_str)
@@ -928,7 +951,19 @@ def query_ui():
             sql = f"SELECT sample, {gene_input} FROM sample_gene_matrix"
             df = run_sqlite_query("ATAC", sql)
             if df is not None and not df.empty:
-                df['Subtype'] = df['sample'].apply(get_atac_meta)
+                # Optimized: Try fetching real metadata first
+                meta_dict = {}
+                conn_atac = sqlite3.connect(DB_PATHS['ATAC'])
+                try:
+                    meta_df = pd.read_sql("SELECT sample, subtype FROM sample_metadata", conn_atac)
+                    meta_dict = dict(zip(meta_df['sample'], meta_df['subtype']))
+                except:
+                    pass
+                conn_atac.close()
+
+                # Apply metadata
+                df['Subtype'] = df['sample'].apply(lambda x: meta_dict.get(x, get_atac_meta_fallback(x)))
+
                 st.info(t('atac_sim_note'))
                 df_filter = df[df['Subtype'] == subtype] if subtype != "All" else df
                 avg = df_filter.groupby("Subtype")[gene_input].mean().reset_index()
