@@ -21,7 +21,7 @@ def build_3nf_database():
     adata = sc.read_h5ad(INPUT_FILE)
 
     # ---------------------------------------------------------
-    # CRITICAL FIX: Use RAW data to include ALL genes, not just HVGs
+    # Use RAW data to include ALL genes, not just HVGs
     # ---------------------------------------------------------
     if adata.raw is not None:
         print("⚡ Utilizing adata.raw to access full transcriptome (20k+ genes)...")
